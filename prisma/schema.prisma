@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  favorites Favorite[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  deletedAt DateTime?  @map("deleted_at")
+  updatedAt DateTime?  @updatedAt @map("updated_at")
+
+  @@map("customers")
+}
+
+model Favorite {
+  id         String    @id @default(uuid())
+  customerId String    @map("customer_id")
+  productId  String    @map("product_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  deletedAt  DateTime? @map("deleted_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, productId])
+  @@map("favorites")
+}

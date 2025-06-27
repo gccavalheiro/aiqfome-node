@@ -1,0 +1,104 @@
+@baseUrl = http://localhost:3333
+@authToken = {{authenticate.response.body.access_token}}
+@customerId = 10366099-12a0-4eee-adbd-c5a1d22726fb
+
+# @name create_customer
+POST {{baseUrl}}/customers
+Content-Type: application/json
+
+{
+  "name": "teste",
+  "email": "teste4@teste.com",
+  "password": "123456"
+}
+
+###
+
+# @name authenticate
+
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+
+{
+  "email": "teste2@teste.com",
+  "password": "123456"
+}
+
+###
+
+# @name list_customers
+GET {{baseUrl}}/customers
+Content-Type: application/json
+
+###
+
+# @name list_customers_with_pagination
+GET {{baseUrl}}/customers?page=1&perPage=5
+Content-Type: application/json
+
+###
+
+# @name get_customer
+GET {{baseUrl}}/customers/{{customerId}}
+Content-Type: application/json
+
+###
+
+# @name update_customer
+PUT {{baseUrl}}/customers/7eaf53c8-4004-4e42-af9a-d4a38020fa70
+Content-Type: application/json
+
+{
+  "name": "John 2Teste",
+  "email": "john.1@example.com",
+  "password": "124567"
+}
+
+###
+
+# @name update_customer_password
+PUT {{baseUrl}}/customers/{{customerId}}
+Content-Type: application/json
+
+{
+  "password": "newpassword123"
+}
+
+###
+
+# @name delete_customer
+DELETE {{baseUrl}}/customers/{{customerId}}
+Content-Type: application/json
+
+###
+
+# @name favorite
+
+POST {{baseUrl}}/favorites
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "customerId": "{{customerId}}",
+  "productId": "2"
+}
+
+###
+
+# @name unfavorite
+
+DELETE {{baseUrl}}/favorites
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "customerId": "{{customerId}}",
+  "productId": "1"
+}
+
+###
+
+# @name list_favorites
+GET {{baseUrl}}/customers/{{customerId}}/favorites
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
