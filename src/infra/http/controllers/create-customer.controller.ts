@@ -7,8 +7,10 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { hash } from 'bcryptjs'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { CreateCustomerDto, CustomerResponseDto } from '@/infra/http/dtos'
 import { z } from 'zod'
 
 const createCustomerBodySchema = z.object({
@@ -21,6 +23,7 @@ const createCustomerBodySchema = z.object({
 
 type CreateCustomerBodySchema = z.infer<typeof createCustomerBodySchema>
 
+@ApiTags('customers')
 @Controller('/customers')
 export class CreateCustomerController {
   constructor(private prisma: PrismaService) {}
@@ -28,6 +31,17 @@ export class CreateCustomerController {
   @Post('/')
   @HttpCode(201)
   @UsePipes(new ZodValidationPipe(createCustomerBodySchema))
+  @ApiOperation({ summary: 'Criar novo cliente' })
+  @ApiBody({ type: CreateCustomerDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Cliente criado com sucesso',
+    type: CustomerResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Cliente com este email já existe',
+  })
   async handle(@Body() body: CreateCustomerBodySchema) {
     const { name, email, password } = body
 
@@ -49,6 +63,8 @@ export class CreateCustomerController {
       id: customer.id,
       name: customer.name,
       email: customer.email,
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt,
     }
   }
 }

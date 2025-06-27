@@ -58,6 +58,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 #ide
 .history
 /generated/prisma
+.vscode
 
 # data
 data/postgres

@@ -1,13 +1,39 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { CustomerListResponseDto } from '@/infra/http/dtos'
 
+@ApiTags('customers')
+@ApiBearerAuth('JWT-auth')
 @Controller('/customers')
 @UseGuards(JwtAuthGuard)
 export class ListCustomerController {
   constructor(private prisma: PrismaService) {}
 
   @Get('/')
+  @ApiOperation({ summary: 'Listar todos os clientes' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Número da página',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'perPage',
+    required: false,
+    description: 'Itens por página',
+    example: 10,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de clientes retornada com sucesso',
+    type: CustomerListResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autorizado',
+  })
   async handle(
     @Query('page') page?: string,
     @Query('perPage') perPage?: string,

@@ -9,8 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { hash } from 'bcryptjs'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { UpdateCustomerDto, CustomerResponseDto } from '@/infra/http/dtos'
 import { z } from 'zod'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
@@ -25,6 +27,8 @@ const updateCustomerBodySchema = z.object({
 
 type UpdateCustomerBodySchema = z.infer<typeof updateCustomerBodySchema>
 
+@ApiTags('customers')
+@ApiBearerAuth('JWT-auth')
 @Controller('/customers')
 @UseGuards(JwtAuthGuard)
 export class UpdateCustomerController {
@@ -32,6 +36,30 @@ export class UpdateCustomerController {
 
   @Put('/:id')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Atualizar cliente' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do cliente',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiBody({ type: UpdateCustomerDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Cliente atualizado com sucesso',
+    type: CustomerResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autorizado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Cliente não encontrado',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Cliente com este email já existe',
+  })
   async handle(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateCustomerBodySchema))

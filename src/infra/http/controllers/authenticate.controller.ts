@@ -8,8 +8,10 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { compare } from 'bcryptjs'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { AuthenticateDto, AuthenticateResponseDto } from '@/infra/http/dtos'
 import { z } from 'zod'
 
 const authenticateBodySchema = z.object({
@@ -19,6 +21,7 @@ const authenticateBodySchema = z.object({
 
 type AuthenticateBodySchema = z.infer<typeof authenticateBodySchema>
 
+@ApiTags('auth')
 @Controller('/sessions')
 export class AuthenticateController {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
@@ -26,6 +29,17 @@ export class AuthenticateController {
   @Post('/')
   @HttpCode(201)
   @UsePipes(new ZodValidationPipe(authenticateBodySchema))
+  @ApiOperation({ summary: 'Autenticar cliente' })
+  @ApiBody({ type: AuthenticateDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Cliente autenticado com sucesso',
+    type: AuthenticateResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Credenciais inválidas',
+  })
   async handle(@Body() body: AuthenticateBodySchema) {
     const { email, password } = body
 
@@ -51,6 +65,11 @@ export class AuthenticateController {
 
     return {
       access_token: token,
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+      },
     }
   }
 }

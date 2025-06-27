@@ -7,9 +7,11 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { AddFavoriteDto } from '@/infra/http/dtos'
 import { z } from 'zod'
 
 const unfavoriteBodySchema = z.object({
@@ -19,6 +21,8 @@ const unfavoriteBodySchema = z.object({
 
 type UnfavoriteBodySchema = z.infer<typeof unfavoriteBodySchema>
 
+@ApiTags('favorites')
+@ApiBearerAuth('JWT-auth')
 @Controller('/favorites')
 @UseGuards(JwtAuthGuard)
 export class UnfavoriteController {
@@ -27,6 +31,20 @@ export class UnfavoriteController {
   @Delete('/')
   @HttpCode(204)
   @UsePipes(new ZodValidationPipe(unfavoriteBodySchema))
+  @ApiOperation({ summary: 'Remover produto dos favoritos' })
+  @ApiBody({ type: AddFavoriteDto })
+  @ApiResponse({
+    status: 204,
+    description: 'Produto removido dos favoritos com sucesso',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autorizado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Cliente ou favorito não encontrado',
+  })
   async handle(@Body() body: UnfavoriteBodySchema) {
     const { customerId, productId } = body
 

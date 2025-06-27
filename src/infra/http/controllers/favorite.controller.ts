@@ -8,10 +8,12 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import axios from 'axios'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { AddFavoriteDto, FavoriteResponseDto } from '@/infra/http/dtos'
 import { z } from 'zod'
 
 const favoriteBodySchema = z.object({
@@ -34,6 +36,8 @@ interface Product {
   }
 }
 
+@ApiTags('favorites')
+@ApiBearerAuth('JWT-auth')
 @Controller('/favorites')
 @UseGuards(JwtAuthGuard)
 export class FavoriteController {
@@ -42,6 +46,25 @@ export class FavoriteController {
   @Post('/')
   @HttpCode(201)
   @UsePipes(new ZodValidationPipe(favoriteBodySchema))
+  @ApiOperation({ summary: 'Adicionar produto aos favoritos' })
+  @ApiBody({ type: AddFavoriteDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Produto adicionado aos favoritos com sucesso',
+    type: FavoriteResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autorizado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Cliente ou produto não encontrado',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Produto já está nos favoritos',
+  })
   async handle(@Body() body: FavoriteBodySchema) {
     const { customerId, productId } = body
 
